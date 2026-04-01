@@ -5,31 +5,34 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, 
-  BarChart3, 
-  GraduationCap, 
   Users2, 
-  FileText, 
+  Calendar, 
+  Stethoscope, 
+  ClipboardList, 
+  Wallet, 
   Settings, 
   Plus, 
   Slack, 
   MessageSquare, 
   CheckSquare,
   ChevronDown,
-  Activity
+  Activity,
+  HeartPulse
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-  { icon: BarChart3, label: 'Analytics', href: '/analytics' },
-  { icon: GraduationCap, label: 'Education', href: '/education', active: true, subItems: [
-    { label: 'Courses', href: '/education/courses' },
-    { label: 'Learner paths', href: '/education/paths' },
-    { label: 'Competencies', href: '/education/competencies' },
+  { icon: Users2, label: 'Pacientes', href: '/dashboard/pacientes', subItems: [
+    { label: 'Listagem', href: '/dashboard/pacientes' },
+    { label: 'Novo Registo', href: '/dashboard/pacientes/novo' },
+    { label: 'Histórico Clínico', href: '/dashboard/pacientes/historico' },
   ]},
-  { icon: Users2, label: 'Team', href: '/team' },
-  { icon: FileText, label: 'Reports', href: '/reports' },
-  { icon: Settings, label: 'Settings', href: '/settings' },
+  { icon: Calendar, label: 'Agendamentos', href: '/dashboard/agendamentos' },
+  { icon: Stethoscope, label: 'Consultas', href: '/dashboard/consultas' },
+  { icon: ClipboardList, label: 'Prontuários', href: '/dashboard/prontuarios' },
+  { icon: Wallet, label: 'Financeiro', href: '/dashboard/financeiro' },
+  { icon: Settings, label: 'Configurações', href: '/dashboard/configuracoes' },
 ];
 
 const integrations = [
@@ -59,14 +62,14 @@ export function Sidebar() {
               href={item.href}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group",
-                item.active || pathname.startsWith(item.href) 
+                pathname.startsWith(item.href) 
                   ? "bg-white/10 text-white" 
                   : "hover:bg-white/5 hover:text-white"
               )}
             >
               <item.icon className={cn(
                 "w-5 h-5 transition-colors",
-                item.active || pathname.startsWith(item.href) ? "text-blue-400" : "group-hover:text-blue-400"
+                pathname.startsWith(item.href) ? "text-blue-400" : "group-hover:text-blue-400"
               )} />
               <span className="flex-1 font-medium text-sm">{item.label}</span>
               {item.subItems && <ChevronDown className="w-4 h-4 opacity-50" />}
