@@ -1,0 +1,396 @@
+openapi: 3.0.0
+info:
+  title: MedAngola Cloud API
+  description: API RESTful para gestão de clínicas médicas em Angola
+  version: 1.0.0
+  contact:
+    name: MedAngola Team
+    email: suporte@medangola.com
+
+servers:
+  - url: http://localhost:8000/api
+    description: Servidor local
+  - url: https://api.medangola.cloud/api
+    description: Servidor de produção (exemplo)
+
+tags:
+  - name: Autenticação
+    description: Endpoints de login, registro e gestão de usuários
+  - name: Pacientes
+    description: CRUD de pacientes
+  - name: Agendamentos
+    description: Gestão de agenda e consultas
+  - name: Financeiro
+    description: Contas, faturas e comissões
+  - name: Dashboard
+    description: Estatísticas e resumos
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Autenticação
+      summary: Realizar login
+      description: Autenticar usuário e obter token de acesso
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - clinic_id
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: teste@clinica.com
+                password:
+                  type: string
+                  example: password123
+                clinic_id:
+                  type: integer
+                  example: 1
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    example: eyJ0eXAiOiJKV1QiLCJhbGc...
+                  token_type:
+                    type: string
+                    example: Bearer
+        '422':
+          description: Erro de validação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/register:
+    post:
+      tags:
+        - Autenticação
+      summary: Registrar nova clínica
+      description: Criar nova clínica e usuário administrador
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - clinic_name
+                - clinic_email
+                - clinic_phone
+                - clinic_nif
+                - admin_name
+                - admin_email
+                - admin_password
+              properties:
+                clinic_name:
+                  type: string
+                  example: Clínica Sagrada Esperança
+                clinic_email:
+                  type: string
+                  format: email
+                clinic_phone:
+                  type: string
+                  example: +244 923 000 000
+                clinic_nif:
+                  type: string
+                  example: 500123456
+                clinic_address:
+                  type: string
+                admin_name:
+                  type: string
+                admin_email:
+                  type: string
+                  format: email
+                admin_password:
+                  type: string
+                  format: password
+                admin_password_confirmation:
+                  type: string
+                  format: password
+      responses:
+        '201':
+          description: Clínica registrada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clinic:
+                    $ref: '#/components/schemas/Clinic'
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+
+  /patients:
+    get:
+      tags:
+        - Pacientes
+      summary: Listar pacientes
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: header
+          name: X-Clinic-Id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de pacientes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Patient'
+                  links:
+                    type: object
+                  meta:
+                    type: object
+
+    post:
+      tags:
+        - Pacientes
+      summary: Criar paciente
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - phone
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                nif:
+                  type: string
+                bi_number:
+                  type: string
+                birth_date:
+                  type: string
+                  format: date
+                gender:
+                  type: string
+                  enum: [male, female, other]
+      responses:
+        '201':
+          description: Paciente criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+
+  /financial/accounts-receivable:
+    get:
+      tags:
+        - Financeiro
+      summary: Listar contas a receber
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: header
+          name: X-Clinic-Id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, received, overdue, cancelled]
+      responses:
+        '200':
+          description: Lista de contas a receber
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AccountReceivable'
+
+    post:
+      tags:
+        - Financeiro
+      summary: Criar conta a receber
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - description
+                - amount
+                - due_date
+              properties:
+                patient_id:
+                  type: integer
+                description:
+                  type: string
+                amount:
+                  type: number
+                  format: float
+                due_date:
+                  type: string
+                  format: date
+                payment_method:
+                  type: string
+                  enum: [cash, card, transfer, multicaixa, insurance]
+      responses:
+        '201':
+          description: Conta criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountReceivable'
+
+  /dashboard/stats:
+    get:
+      tags:
+        - Dashboard
+      summary: Estatísticas do dashboard
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Estatísticas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_patients:
+                    type: integer
+                  appointments_today:
+                    type: integer
+                  appointments_pending:
+                    type: integer
+                  revenue_month:
+                    type: number
+                    format: float
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token obtido via endpoint /auth/login
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [admin, doctor, receptionist, pharmacist, accountant]
+        clinic_id:
+          type: integer
+
+    Clinic:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        slug:
+          type: string
+        plan:
+          type: string
+          enum: [basic, professional, enterprise]
+
+    Patient:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        clinic_id:
+          type: integer
+        bi_number:
+          type: string
+        nif:
+          type: string
+
+    AccountReceivable:
+      type: object
+      properties:
+        id:
+          type: integer
+        description:
+          type: string
+        amount:
+          type: number
+          format: float
+        due_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [pending, received, overdue, cancelled]
+        payment_method:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: object

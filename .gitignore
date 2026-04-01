@@ -1,0 +1,45 @@
+# Root .gitignore for Sodo Clinica Monorepo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies (managed in subfolders)
+**/node_modules/
+**/vendor/
+
+# Environment
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Build outputs
+**/dist/
+**/build/
+**/.next/
+**/out/
+
+# Laravel specifics
+apps/api/storage/*.key
+apps/api/storage/framework/cache/data/*
+apps/api/storage/framework/sessions/*
+apps/api/storage/framework/testing/*
+apps/api/storage/framework/views/*
+apps/api/storage/logs/*.log
+apps/api/public/storage
+apps/api/public/hot
+
+# SQLite database
+apps/api/database/*.sqlite
+apps/api/database/*.sqlite-journal
+
+# Other
+.agents/
+.qoder/
+/tmp/
